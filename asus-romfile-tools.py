@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import argparse, struct, random
 
@@ -31,29 +31,29 @@ def main():
         encrypt(args.in_file, args.out_file, args.model, args.rand)
 
 def decrypt(in_file, out_file):
-    with open(in_file, 'r') as content_file:
+    with open(in_file, 'rb') as content_file:
         content = bytearray(content_file.read())
 
     (model, magic, length, key) = struct.unpack(HEADER, content[:HEADER_SIZE])
-    print "Model: %s\nMagic: %s\nLength: %d\nKey: %s" % (model, magic, length, key)
+    print("Model: %s\nMagic: %s\nLength: %d\nKey: %s" % (model, magic, length, key))
     
     data = content[HEADER_SIZE:]
     if len(data) != length:
-        print "Warning: file length (%d) does not match length in header (%d)" % (len(encrypted), length)
+        print("Warning: file length (%d) does not match length in header (%d)" % (len(encrypted), length))
 
-    for i in xrange(0, len(data)):
+    for i in range(0, len(data)):
         byte = data[i]
         if byte == 0xfd or byte == 0xfe or byte == 0xff:
             byte = 0x00
         else:
             byte = (0xff - byte + key) & 0xff
-        data[i] = chr(byte)
+        data[i] = byte
 
-    with open(out_file, 'w') as content_file:
+    with open(out_file, 'wb') as content_file:
         content_file.write(data)
 
 def encrypt(in_file, out_file, model, key):
-    with open(in_file, 'r') as content_file:
+    with open(in_file, 'rb') as content_file:
         content = bytearray(content_file.read())
 
     if not key:
@@ -61,19 +61,19 @@ def encrypt(in_file, out_file, model, key):
 
     length = len(content)
 
-    print "Length: %d\nKey: %s" % (length, key)
+    print("Length: %d\nKey: %s" % (length, key))
 
     header = struct.pack(HEADER, model, MAGIC_STR, length, key)
 
-    for i in xrange(0, length):
+    for i in range(0, length):
         byte = content[i]
         if byte == 0:
             byte = 0xff # 0xfd, 0xfe or 0xff will work
         else:
             byte = (0xff - byte + key) & 0xff
-        content[i] = chr(byte)
+        content[i] = byte
 
-    with open(out_file, 'w') as content_file:
+    with open(out_file, 'wb') as content_file:
         content_file.write(header)
         content_file.write(content)
     
